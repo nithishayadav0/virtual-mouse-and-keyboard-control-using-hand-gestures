@@ -25,45 +25,32 @@ keys = [
 
 def move_mouse(index_finger_tip):
     if index_finger_tip is not None:
-        x = int(index_finger_tip.x * screen_width)
+        x = int(index_finger_tip.x * screen_width)  ##to move mouse index finger and middle open ,
         y = int(index_finger_tip.y * screen_height)
-        pyautogui.moveTo(x, y)
+        pyautogui.moveTo(x, y)     ##thumb should be close , if thumb open it stops moving
+    
 
 def find_finger_tip(processed):
     if processed.multi_hand_landmarks:
         hand_landmarks = processed.multi_hand_landmarks[0]
-        return hand_landmarks.landmark[mpHands.HandLandmark.INDEX_FINGER_TIP]
+        return hand_landmarks.landmark[mpHands.HandLandmark.INDEX_FINGER_TIP] 
     return None
 
 def left_click(landmarks_list, thumb_index_dist):
-    return (track.getangle(landmarks_list[5], landmarks_list[6], landmarks_list[8]) < 50 and 
+    return (track.getangle(landmarks_list[5], landmarks_list[6], landmarks_list[8]) < 50 and  ## thumb and indexfinegx open
             track.getangle(landmarks_list[9], landmarks_list[10], landmarks_list[12]) > 90 and thumb_index_dist > 50)
 
 def right_click(landmarks_list, thumb_index_dist):
     return (track.getangle(landmarks_list[9], landmarks_list[10], landmarks_list[12]) < 50 and 
-            track.getangle(landmarks_list[5], landmarks_list[6], landmarks_list[8]) > 90 and thumb_index_dist > 50)
+            track.getangle(landmarks_list[5], landmarks_list[6], landmarks_list[8]) > 90 and thumb_index_dist > 50) ##only thumb and middle finger open
 
 def double_click(landmarks_list, thumb_index_dist):
     return (track.getangle(landmarks_list[9], landmarks_list[10], landmarks_list[12]) < 50 and 
-            track.getangle(landmarks_list[5], landmarks_list[6], landmarks_list[8]) < 50 and thumb_index_dist > 50)
+            track.getangle(landmarks_list[5], landmarks_list[6], landmarks_list[8]) < 50 and thumb_index_dist > 50) ##thumb open and all close
 
 def screenshot(landmarks_list, thumb_index_dist):
     return (track.getangle(landmarks_list[9], landmarks_list[10], landmarks_list[12]) < 50 and 
-            track.getangle(landmarks_list[5], landmarks_list[6], landmarks_list[8]) < 50 and thumb_index_dist < 50)
-
-def draw(img, buttonlist): ##after assiging each button to buttonlist we find the pos,size
-    for btn in buttonlist:     #and rectangle and assign text-color to each buttton
-        x, y = btn.pos   ##in the image(frame)
-        w, h = btn.size
-        cv2.rectangle(img, btn.pos, (x + w, y + h), (255, 255, 255), cv2.FILLED)
-        cv2.putText(img, btn.text, (x + 20, y + 60), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 0), 2)
-    return img
-
-class VirtualButton:
-    def __init__(self, pos, text, size=[85, 85]):
-        self.pos = pos
-        self.size = size
-        self.text = text
+            track.getangle(landmarks_list[5], landmarks_list[6], landmarks_list[8]) < 50 and thumb_index_dist < 50) ##all fingers should be closed
 
 def detect_gestures(frame, landmarks_list, processed): ##this is for hand gestures
     if len(landmarks_list) >= 21:
@@ -87,6 +74,20 @@ def detect_gestures(frame, landmarks_list, processed): ##this is for hand gestur
             label = random.randint(1, 1000)
             im1.save(f'my_screenshot_{label}.png')
             cv2.putText(frame, "Screenshot Taken", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+##keyboard control
+class VirtualButton:
+    def __init__(self, pos, text, size=[85, 85]):
+        self.pos = pos
+        self.size = size
+        self.text = text
+def draw(img, buttonlist): ##after assiging each button to buttonlist we find the pos,size
+    for btn in buttonlist:     #and rectangle and assign text-color to each buttton
+        x, y = btn.pos   ##in the image(frame)
+        w, h = btn.size
+        cv2.rectangle(img, btn.pos, (x + w, y + h), (255, 255, 255), cv2.FILLED)
+        cv2.putText(img, btn.text, (x + 20, y + 60), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 0), 2)
+    return img
+
 
 buttonlist = []
 button_size = [75, 75]
@@ -125,7 +126,7 @@ def main():
         frame = draw(frame, buttonlist)
         
         if landmarks_list:
-            index_finger_tip_x = int(landmarks_list[8][0] * 1280)
+            index_finger_tip_x = int(landmarks_list[8][0] * 1280)  ##checking finger tips
             index_finger_tip_y = int(landmarks_list[8][1] * 720)
             for btn in buttonlist:
                 x, y = btn.pos
@@ -137,8 +138,8 @@ def main():
                         pyautogui.press(btn.text.lower())  # Simulate keyboard press
                         cv2.rectangle(frame, btn.pos, (x + w, y + h), (0, 255, 0), cv2.FILLED)
                         cv2.putText(frame, btn.text, (x + 20, y + 60), cv2.FONT_HERSHEY_PLAIN, 2, (255, 120, 120), 2)
-                        sleep(0.3)
-        
+                        sleep(0.2)
+                    ## thumbindex open ,indexfinger and middlefinger should be close they it operates
         cv2.imshow('Frame', frame)
         if cv2.waitKey(1) == ord('q'):
             break
